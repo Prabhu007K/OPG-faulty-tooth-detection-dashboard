@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPG Faulty Tooth Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="mesh-bg" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <header class="header">
+    <nav class="nav-bar">
+      <div class="nav-brand">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.5"/><path d="M10 20c0-3 2.5-6 6-6s6 3 6 6" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="12" r="3" stroke="#fbbf24" stroke-width="1.5"/></svg>
+        </span>
+        <span>DentalScan AI</span>
+      </div>
+      <div class="status-pill" id="model-status">
+        <span class="status-dot"></span>
+        <span id="status-text">Checking model…</span>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="hero-badge">YOLOv8 · Panoramic OPG analysis</span>
+        <h1>Detect faulty teeth<br><em>from dental X-rays</em></h1>
+        <p>Upload an orthopantomogram — we validate the scan, run AI detection, and return a marked image you can download.</p>
+        <div class="hero-stats">
+          <div><strong>3</strong><span>steps</span></div>
+          <div><strong>PDF</strong><span>supported</span></div>
+          <div><strong>YOLO</strong><span>v8 model</span></div>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="xray-frame float">
+          <div class="xray-scanline"></div>
+          <svg class="xray-svg" viewBox="0 0 280 120" fill="none">
+            <ellipse cx="140" cy="95" rx="110" ry="18" stroke="rgba(56,189,248,.35)" stroke-width="1"/>
+            <path d="M55 70 Q70 45 90 65 Q105 40 120 68 Q135 42 150 66 Q165 38 180 67 Q200 44 215 70 Q225 55 235 72" stroke="rgba(251,191,36,.7)" stroke-width="2" fill="none"/>
+            <rect x="118" y="28" width="24" height="14" rx="2" stroke="rgba(248,113,113,.8)" stroke-width="2" fill="rgba(248,113,113,.15)"/>
+            <text x="122" y="38" fill="#fca5a5" font-size="7" font-family="monospace">faulty</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="alert-panel hidden" id="error-panel" role="alert">
+      <div class="alert-icon" aria-hidden="true">!</div>
+      <div class="alert-body">
+        <strong id="error-title">Not a valid OPG scan</strong>
+        <p id="error-message"></p>
+        <ul class="alert-tips">
+          <li>Use a <strong>panoramic dental X-ray</strong> (wide grayscale jaw image)</li>
+          <li>Export as JPG, PNG, or single-page PDF</li>
+          <li>Avoid selfies, screenshots, or colour photos</li>
+        </ul>
+      </div>
+      <button type="button" class="alert-close" id="error-close" aria-label="Dismiss">×</button>
+    </div>
+
+    <div class="main-grid">
+      <section class="upload-card glass">
+        <div class="card-head">
+          <h2>Upload OPG scan</h2>
+          <span class="step-badge">01</span>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" hidden>
+          <div class="dropzone-glow" aria-hidden="true"></div>
+          <div class="dropzone-inner">
+            <div class="drop-icon">
+              <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="14" width="32" height="24" rx="4" stroke="currentColor" stroke-width="2"/><path d="M16 22h16M20 28h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M24 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <p class="drop-title">Drop your OPG here</p>
+            <p class="drop-sub">or <button type="button" class="link-btn" id="browse-btn">browse files</button></p>
+            <div class="format-tags"><span>JPG</span><span>PNG</span><span>PDF</span></div>
+          </div>
+        </div>
+
+        <div class="preview-row hidden" id="preview-row">
+          <div class="thumb-wrap"><img id="thumb-preview" alt="" /></div>
+          <div class="file-meta">
+            <span class="file-name" id="file-name"></span>
+            <span class="file-hint">Ready for OPG validation + analysis</span>
+          </div>
+          <button type="button" class="btn-ghost" id="clear-btn">Remove</button>
+        </div>
+
+        <div class="sample-library glass" id="sample-library">
+          <div class="sample-head">
+            <h3>Sample library</h3>
+            <span class="sample-badge">Try a demo</span>
+          </div>
+          <p class="sample-intro">No OPG handy? Pick a sample scan to see how detection works.</p>
+          <div class="sample-grid" id="sample-grid"></div>
+          <p class="sample-empty hidden" id="sample-empty">Add JPG/PNG files to the <code>images/</code> folder.</p>
+        </div>
+
+        <div class="controls-block">
+          <label class="slider-label">
+            <span class="slider-title">Detection sensitivity</span>
+            <span id="conf-value" class="conf-badge">25%</span>
+            <input type="range" id="confidence" min="5" max="95" value="25" step="5">
+            <span class="slider-hints"><span>More flags</span><span>Stricter</span></span>
+          </label>
+          <button type="button" class="btn-primary" id="analyze-btn" disabled>
+            <span class="btn-shine" aria-hidden="true"></span>
+            <span>Analyze OPG scan</span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="side-panel" id="empty-state">
+        <section class="glass steps-card">
+          <h3>Workflow</h3>
+          <ol class="steps">
+            <li class="active-step"><span>1</span><div><strong>Validate OPG</strong><p>We check panoramic layout & X-ray appearance.</p></div></li>
+            <li><span>2</span><div><strong>Run YOLOv8</strong><p>Model marks suspect faulty regions.</p></div></li>
+            <li><span>3</span><div><strong>Export result</strong><p>Compare views and download marked image.</p></div></li>
+          </ol>
+        </section>
+        <section class="glass opg-guide">
+          <h3>What is an OPG?</h3>
+          <div class="opg-diagram" aria-hidden="true">
+            <div class="opg-shape"><span>Wide panoramic jaw X-ray</span></div>
+          </div>
+          <p>A single grayscale image showing upper & lower teeth in one sweep — not a regular photo or bitewing close-up.</p>
+        </section>
+      </aside>
+    </div>
+
+    <section class="results hidden" id="results">
+      <div class="results-header">
+        <div>
+          <span class="success-chip">✓ Analysis complete</span>
+          <h2>Detection results</h2>
+        </div>
+        <div class="result-actions">
+          <div class="count-pill"><span id="det-count">0</span> regions flagged</div>
+          <a class="btn-download" id="download-btn" href="#" download>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l4-4m-4 4L8 11M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Download marked image
+          </a>
+        </div>
+      </div>
+
+      <div class="compare-grid">
+        <figure class="glass preview-card">
+          <figcaption><span class="pill pill-muted">Original OPG</span></figcaption>
+          <div class="img-frame"><img id="img-original" alt="Original upload" /></div>
+        </figure>
+        <figure class="glass preview-card preview-glow">
+          <figcaption><span class="pill pill-accent">AI annotated</span></figcaption>
+          <div class="img-frame"><img id="img-marked" alt="Marked detection result" /></div>
+        </figure>
+      </div>
+
+      <section class="glass table-card hidden" id="table-wrap">
+        <h3>Detection breakdown</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>#</th><th>Label</th><th>Confidence</th><th>Bounding box</th><th>Size</th></tr></thead>
+            <tbody id="det-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+  <div class="loading hidden" id="loading">
+    <div class="loading-card glass">
+      <div class="loader-ring"></div>
+      <p class="loading-title" id="loading-title">Validating OPG…</p>
+      <p class="loading-sub" id="loading-sub">Checking panoramic X-ray format</p>
+      <div class="loading-steps">
+        <span class="load-step active" data-step="validate">Validate</span>
+        <span class="load-step" data-step="infer">Detect</span>
+        <span class="load-step" data-step="render">Render</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Educational screening tool only — not a medical diagnosis · YOLOv8</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

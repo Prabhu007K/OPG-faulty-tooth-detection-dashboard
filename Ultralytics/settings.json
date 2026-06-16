@@ -1,0 +1,21 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "D:\\MyPortfolio\\Projects\\Web_developer\\Faulty-Toothdetection\\datasets",
+  "weights_dir": "weights",
+  "runs_dir": "runs",
+  "uuid": "503e35469c4f1d9c0d46902d3fa9a4d6ea6d910f1a0cd12510a58c0aa92ea8a6",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}

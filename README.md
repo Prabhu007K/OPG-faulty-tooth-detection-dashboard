@@ -1,11 +1,29 @@
+---
+title: OPG Faulty Tooth Detection
+emoji: 🦷
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+startup_duration_timeout: 30m
+---
+
 # OPG Faulty Tooth Detection Dashboard
 
 Upload orthopantomogram (OPG) dental X-rays, validate format, run YOLOv8 inference, and download annotated results. Includes a Flask dashboard (local) and a **Hugging Face Spaces** deploy path for a free public demo.
 
 ## Live Demo
 
-<!-- Hugging Face Spaces — recommended -->
-`https://huggingface.co/spaces/YOUR_USERNAME/opg-faulty-tooth-detection`
+**Public app (portfolio link):**  
+https://prabhu007k-opg-faulty-tooth-detection.hf.space
+
+**GitHub:**  
+https://github.com/Prabhu007K/OPG-faulty-tooth-detection-dashboard
+
+**Hugging Face Space:**  
+https://huggingface.co/spaces/Prabhu007K/opg-faulty-tooth-detection
 
 > **Deploy guide:** see **[DEPLOY.md](DEPLOY.md)** for step-by-step GitHub + Hugging Face setup.
 
@@ -13,7 +31,7 @@ Upload orthopantomogram (OPG) dental X-rays, validate format, run YOLOv8 inferen
 
 | Platform | Recommended? | Notes |
 |----------|--------------|--------|
-| **Hugging Face Spaces** | **Yes (best free option)** | Gradio via `app.py` (default on HF) |
+| **Hugging Face Spaces** | **Yes (best free option)** | Docker → same Flask UI as localhost |
 | **Local (`python flask_app.py`)** | Yes | Full custom UI on port 4005 |
 | **Render Free** | **No** | 512 MB → memory exceeded with PyTorch |
 | **Render Standard (2 GB)** | Optional | Paid; use `app.py` + `gunicorn.conf.py` |
@@ -36,8 +54,11 @@ Python 3 · Flask · Gradio · Ultralytics YOLOv8 · OpenCV · PyMuPDF · CPU-on
 ## Project Structure
 
 ```
-├── app.py              # Gradio — Hugging Face Spaces (public demo)
-├── flask_app.py        # Flask dashboard (local / paid cloud)
+```
+├── app.py              # Gradio (optional fallback)
+├── flask_app.py        # Flask dashboard — local + Hugging Face Docker
+├── Dockerfile          # HF Space builds this for public deploy
+├── entrypoint.sh       # Downloads model + starts gunicorn
 ├── hf_app.py           # alias → app.py
 ├── detector.py         # YOLO inference
 ├── opg_validator.py    # OPG format checks

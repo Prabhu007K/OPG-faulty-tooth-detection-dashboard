@@ -1,0 +1,10 @@
+# Hugging Face Docker Space — Flask only (no Gradio)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
+torchvision>=0.15.0
+flask>=3.0.0
+gunicorn>=21.0.0
+ultralytics>=8.0.0
+opencv-python-headless>=4.8.0
+pymupdf>=1.23.0
+numpy>=1.24.0

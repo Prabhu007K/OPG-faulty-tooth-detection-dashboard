@@ -23,9 +23,6 @@ MAX_BYTES = 20 * 1024 * 1024
 def create_app():
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = MAX_BYTES
-    if os.environ.get("MODEL_URL"):
-        from download_model import ensure_model
-        ensure_model()
 
     @app.route("/")
     def index():
@@ -34,6 +31,13 @@ def create_app():
     @app.route("/api/status")
     def status():
         st = get_model_status()
+        if not st["available"] and os.environ.get("MODEL_URL"):
+            from download_model import ensure_model
+            try:
+                ensure_model()
+            except Exception:
+                pass
+            st = get_model_status()
         if st["available"] and not st["loaded"] and not st["loading"]:
             preload_model()
             st = get_model_status()

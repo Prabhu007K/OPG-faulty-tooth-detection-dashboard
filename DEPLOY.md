@@ -70,29 +70,45 @@ Paste text from `description.txt` into GitHub **Description** field.
 2. Settings:
    - **Space name:** `opg-faulty-tooth-detection` (or your choice)
    - **License:** MIT
-   - **SDK:** **Gradio**
+   - **SDK:** **Docker** (serves the same Flask UI as localhost)
    - **Hardware:** **CPU basic** (free)
    - **Visibility:** Public
 3. **Connect GitHub repo** (same repo from Part 1)  
    OR upload files manually to the Space repo
-4. In Space → **Settings** → **SDK:** Gradio · **App file:** `app.py` (default)
+4. Ensure **`README.md`** YAML at the top includes `sdk: docker` and `app_port: 7860`
 5. In Space → **Settings** → **Secrets** → add:
 
    | Name | Value |
    |------|--------|
    | `MODEL_URL` | Your GitHub Release URL for `best.pt` |
 
-6. Space will run `pip install -r requirements.txt` and start Gradio from `app.py`
+6. Space will build the **Dockerfile** and start `flask_app.py` on port **7860**
 7. First build takes **5–10 minutes** (downloads PyTorch CPU)
-8. Live URL:
+8. **Portfolio link (public webpage):**
    ```
-   https://huggingface.co/spaces/YOUR_USERNAME/opg-faulty-tooth-detection
+   https://YOUR_USERNAME-opg-faulty-tooth-detection.hf.space
    ```
+   Example: `https://prabhu007k-opg-faulty-tooth-detection.hf.space`
 
 ### Verify
 - Open the Space URL
 - Upload an OPG image → **Analyze OPG**
 - Marked image should appear
+
+### Troubleshooting (runtime error)
+
+| Symptom | Fix |
+|---------|-----|
+| Build OK but **Runtime error** | Check **Logs** tab (not Build) for the real error |
+| `MODEL_URL download failed — file too small` | Use the **direct** release URL ending in `/best.pt`, not the releases page |
+| `Model weights not found` | Space → **Settings** → **Secrets** → add `MODEL_URL` |
+| Gradio theme warning | Harmless — fixed in latest `app.py` |
+| Python / SDK settings missing | Config is in **`README.md` YAML** at the top (push to GitHub to apply) |
+
+**Correct MODEL_URL example:**
+```
+https://github.com/YOUR_USER/opg-faulty-tooth-detection/releases/download/v1.0/best.pt
+```
 
 Put this URL in your portfolio README **Live Demo** section.
 
